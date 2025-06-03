@@ -1,11 +1,9 @@
 package core
 
 import (
-	"encoding/csv"
 	"errors"
 	"fmt"
 	"image/png"
-	"io"
 	"os"
 	"strings"
 
@@ -18,31 +16,15 @@ type Record struct {
 	Ean  string
 }
 
-func RecordsFromCsv(r io.Reader, comma rune, text string, ean string) ([]Record, error) {
-	if r == nil {
-		return nil, errors.New("Reader is <nil>")
-	}
+func RecordsFromTable(table [][]string, text string, ean string) ([]Record, error) {
 	if text == "" {
 		return nil, errors.New("Text column header cannot be empty")
 	}
 	if ean == "" {
 		return nil, errors.New("Ean column header cannot be empty")
 	}
-
-	// Create a new CSV reader
-	reader := csv.NewReader(r)
-	fmt.Printf("Comma: '%d'", comma)
-	if comma != 0 {
-		reader.Comma = comma
-	}
-
-	// Read all records
-	csv_data, err := reader.ReadAll()
-	if err != nil {
-		return nil, err
-	}
-	if len(csv_data) == 0 {
-		return nil, errors.New("Csv file cannot be empty")
+	if len(table) == 0 {
+		return nil, errors.New("Table with data cannot be empty")
 	}
 
 	// Find headers
@@ -50,7 +32,7 @@ func RecordsFromCsv(r io.Reader, comma rune, text string, ean string) ([]Record,
 	ean_index := -1
 	text_lower := strings.ToLower(text)
 	ean_lower := strings.ToLower(ean)
-	for i, item := range csv_data[0] {
+	for i, item := range table[0] {
 		if strings.ToLower(item) == text_lower {
 			text_index = i
 		} else if strings.ToLower(item) == ean_lower {
@@ -67,7 +49,7 @@ func RecordsFromCsv(r io.Reader, comma rune, text string, ean string) ([]Record,
 
 	// Print each record
 	ret := []Record{}
-	for _, csv_line := range csv_data[1:] {
+	for _, csv_line := range table[1:] {
 		if csv_line[ean_index] != "" {
 			ret = append(ret, Record{Text: csv_line[text_index], Ean: csv_line[ean_index]})
 		}

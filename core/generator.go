@@ -121,7 +121,12 @@ func (g *Generator) GeneratePdf() error {
 	}
 	defer file.Close()
 
-	records, err := RecordsFromCsv(file, rune(g.CsvComma), g.TextHeader, g.EanHeader)
+	csv, err := TableFromCsv(file, rune(g.CsvComma))
+	if err != nil {
+		return err
+	}
+
+	records, err := RecordsFromTable(csv, g.TextHeader, g.EanHeader)
 	if err != nil {
 		return err
 	}

@@ -27,3 +27,5 @@ go.work.sum
 *.csv
 *.pdf
 *.json
+*.xlsx
+*.XLSX

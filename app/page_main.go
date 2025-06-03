@@ -47,27 +47,41 @@ func (m *MainPage) mainPage(
 							message.message = "Input file must be set."
 							message.messageType = Error
 						} else {
-							records, err := core.RecordsFromCsv(
-								strings.NewReader(*m.file.GetFileContent()),
-								rune(generator.CsvComma),
-								m.textHeader.GetText(),
-								m.eanHeader.GetText())
+							err := func() error {
 
-							pdfFile := "./" + NAME + ".pdf"
-							if m.file.GetFileName() != "" {
-								pdfFile = core.GeneratePdfPath(m.file.GetFileName())
-							}
-							if generator.PdfPath != "" {
-								pdfFile = generator.PdfPath
-							}
-							if err != nil {
-								message.setError(err)
-							} else {
+								table, err := core.TableFromCsv(
+									strings.NewReader(*m.file.GetFileContent()),
+									rune(generator.CsvComma))
+								if err != nil {
+									table, err = core.TableFromExcel(
+										strings.NewReader(*m.file.GetFileContent()),
+										0)
+									if err != nil {
+										return err
+									}
+								}
+
+								records, err := core.RecordsFromTable(
+									table,
+									m.textHeader.GetText(),
+									m.eanHeader.GetText())
+								if err != nil {
+									return err
+								}
+
+								pdfFile := "./" + NAME + ".pdf"
+								if m.file.GetFileName() != "" {
+									pdfFile = core.GeneratePdfPath(m.file.GetFileName())
+								}
+								if generator.PdfPath != "" {
+									pdfFile = generator.PdfPath
+								}
+
 								pdf := core.NewPdf()
 								pdf.AddPages(records)
 								err = pdf.Save(pdfFile)
 								if err != nil {
-									message.setError(err)
+									return err
 								} else {
 									message.message = fmt.Sprintf("File %s saved.", pdfFile)
 									message.messageType = Info
@@ -76,6 +90,11 @@ func (m *MainPage) mainPage(
 								generator.EanHeader = m.eanHeader.GetText()
 								generator.Save("./." + NAME + ".json")
 								setHidden("./." + NAME + ".json")
+								return nil
+							}()
+
+							if err != nil {
+								message.setError(err)
 							}
 						}
 					}
