@@ -3,14 +3,48 @@ package core
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 )
 
+type Comma rune
+
+func CommaFromString(s string) (Comma, error) {
+	if len(s) == 0 {
+		return 0, nil
+	}
+	if len(s) != 1 {
+		return 0, fmt.Errorf("expected a single character, got %q", s)
+	}
+	return Comma([]rune(s)[0]), nil
+}
+
+func (r Comma) MarshalJSON() ([]byte, error) {
+	return json.Marshal(string(r))
+}
+
+func (r *Comma) UnmarshalJSON(data []byte) error {
+	var s string
+	if err := json.Unmarshal(data, &s); err != nil {
+		return err
+	}
+	comma, err := CommaFromString(s)
+	if err != nil {
+		return err
+	}
+	if len(s) != 1 {
+		return fmt.Errorf("expected a single character, got %q", s)
+	}
+	*r = comma
+	return nil
+}
+
 type Generator struct {
 	CsvPath    string `json:"csv_path"`
 	PdfPath    string `json:"pdf_path"`
+	CsvComma   Comma  `json:"csv_comma"`
 	TextHeader string `json:"text_header"`
 	EanHeader  string `json:"ean_header"`
 }
@@ -69,6 +103,7 @@ func (g *Generator) Save(path string) error {
 	defer file.Close()
 
 	encoder := json.NewEncoder(file)
+	encoder.SetIndent("", "  ")
 	return encoder.Encode(g)
 }
 
@@ -86,7 +121,7 @@ func (g *Generator) GeneratePdf() error {
 	}
 	defer file.Close()
 
-	records, err := RecordsFromCsv(file, g.TextHeader, g.EanHeader)
+	records, err := RecordsFromCsv(file, rune(g.CsvComma), g.TextHeader, g.EanHeader)
 	if err != nil {
 		return err
 	}

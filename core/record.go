@@ -18,7 +18,7 @@ type Record struct {
 	Ean  string
 }
 
-func RecordsFromCsv(r io.Reader, text string, ean string) ([]Record, error) {
+func RecordsFromCsv(r io.Reader, comma rune, text string, ean string) ([]Record, error) {
 	if r == nil {
 		return nil, errors.New("Reader is <nil>")
 	}
@@ -31,6 +31,10 @@ func RecordsFromCsv(r io.Reader, text string, ean string) ([]Record, error) {
 
 	// Create a new CSV reader
 	reader := csv.NewReader(r)
+	fmt.Printf("Comma: '%d'", comma)
+	if comma != 0 {
+		reader.Comma = comma
+	}
 
 	// Read all records
 	csv_data, err := reader.ReadAll()

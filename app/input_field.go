@@ -32,6 +32,10 @@ func (i *inputField) GetText() string {
 	return i.editor.Text()
 }
 
+func (i *inputField) SetText(text string) {
+	i.editor.SetText(text)
+}
+
 func (i *inputField) GetWidget(th *material.Theme) layout.Widget {
 	return func(gtx C) D {
 		return layout.UniformInset(unit.Dp(0)).Layout(gtx, func(gtx C) D {

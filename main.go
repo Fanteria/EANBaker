@@ -43,6 +43,8 @@ func GetOpts() (*core.Generator, error) {
 	flag.StringVar(&generator.PdfPath, "pdf", "", "Path to the generated pdf file. If is not set, CSV file path with suffix changed to pdf is used.")
 	flag.StringVar(&generator.TextHeader, "text-header", "Material Number", "Case insensitive header of column that will be used as text.")
 	flag.StringVar(&generator.EanHeader, "ean-header", "ean", "Case insensitive header of column containing ean codes that will be used to generate barcode.")
+	var comma_string string
+	flag.StringVar(&comma_string, "csv-separator", ",", "CSV file column separator.")
 
 	flag.Usage = func() {
 		fmt.Print(USAGE)
@@ -52,10 +54,16 @@ func GetOpts() (*core.Generator, error) {
 	// Parse the flags
 	flag.Parse()
 
+	comma, err := core.CommaFromString(comma_string)
+	if err != nil {
+		return nil, err
+	}
+	generator.CsvComma = comma
+
 	generator.UpdatePdfPath()
 
 	// Check if opts are valid.
-	err := generator.Validate()
+	err = generator.Validate()
 	if err != nil {
 		return nil, err
 	}
