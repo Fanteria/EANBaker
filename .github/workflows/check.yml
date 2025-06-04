@@ -12,39 +12,43 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-  
-    - name: Set up Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: '1.24'
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+    
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
 
-    - name: System dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y \
-          libglfw3-dev \
-          libxkbcommon-x11-dev \
-          libx11-xcb-dev \
-          libxcursor-dev \
-          libxfixes-dev
+      - name: System dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libglfw3-dev \
+            libxkbcommon-x11-dev \
+            libx11-xcb-dev \
+            libxcursor-dev \
+            libxfixes-dev
 
-    - name: Build
-      run: go build -v ./...
+      - name: Build
+        run: go build -v ./...
 
-    - name: Test
-      run: go test -v ./...
+      - name: Test
+        run: go test -v ./...
 
   format:
     name: Format
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Set up Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: '1.24'
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
 
-    - name: Build
-      run: gofmt -s -l . && git diff --exit-code '*.go'
+      - name: Format
+        run: gofmt -s -l . && git diff --exit-code '*.go'
