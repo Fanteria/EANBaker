@@ -29,3 +29,5 @@ go.work.sum
 *.json
 *.xlsx
 *.XLSX
+# Added by goreleaser init:
+dist/
