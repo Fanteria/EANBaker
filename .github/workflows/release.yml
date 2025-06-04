@@ -29,10 +29,11 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y \
             libglfw3-dev \
-            libxkbcommon-x11-dev \
+            libvulkan-dev \
             libx11-xcb-dev \
             libxcursor-dev \
-            libxfixes-dev
+            libxfixes-dev \
+            libxkbcommon-x11-dev
 
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
