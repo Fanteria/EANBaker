@@ -5,6 +5,7 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
+  workflow_dispatch:
 
 jobs:
   test:
@@ -22,12 +23,11 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y \
-          libegl1-mesa-dev \
-          libvulkan-dev \ 
-          libwayland-dev \
-          libx11-dev \
-          libxkbcommon-dev \
-          pkg-config
+          libglfw3-dev \
+          libxkbcommon-x11-dev \
+          libx11-xcb-dev \
+          libxcursor-dev \
+          libxfixes-dev
 
     - name: Build
       run: go build -v ./...
@@ -47,4 +47,4 @@ jobs:
         go-version: '1.24'
 
     - name: Build
-      run: gofmt -s -l . && git diff --exit-code
+      run: gofmt -s -l . && git diff --exit-code '*.go'
