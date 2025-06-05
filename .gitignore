@@ -31,3 +31,5 @@ go.work.sum
 *.XLSX
 # Added by goreleaser init:
 dist/
+
+EANBaker
