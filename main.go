@@ -43,6 +43,7 @@ func GetOpts() (*core.Generator, error) {
 	flag.StringVar(&generator.PdfPath, "pdf", "", "Path to the generated pdf file. If is not set, CSV file path with suffix changed to pdf is used.")
 	flag.StringVar(&generator.TextHeader, "text-header", "Material Number", "Case insensitive header of column that will be used as text.")
 	flag.StringVar(&generator.EanHeader, "ean-header", "ean", "Case insensitive header of column containing ean codes that will be used to generate barcode.")
+	timesEachEan := flag.Uint("times-each-ean", 1, "Number of times each EAN code will be printed in the output PDF.")
 	var comma_string string
 	flag.StringVar(&comma_string, "csv-separator", ",", "CSV file column separator.")
 
@@ -53,6 +54,7 @@ func GetOpts() (*core.Generator, error) {
 
 	// Parse the flags
 	flag.Parse()
+	generator.TimesEachEAN = *timesEachEan
 
 	comma, err := core.CommaFromString(comma_string)
 	if err != nil {

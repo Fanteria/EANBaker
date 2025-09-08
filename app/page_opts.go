@@ -1,6 +1,9 @@
 package app
 
 import (
+	"errors"
+	"fmt"
+	"strconv"
 	"strings"
 
 	"gioui.org/layout"
@@ -12,11 +15,12 @@ import (
 
 type OptsPage struct {
 	// file       openFileDialog
-	csvComma   inputField
-	textHeader inputField
-	eanHeader  inputField
-	pdfFile    inputField
-	saveBtn    widget.Clickable
+	csvComma     inputField
+	textHeader   inputField
+	eanHeader    inputField
+	pdfFile      inputField
+	saveBtn      widget.Clickable
+	timesEachEan inputField
 }
 
 func (o *OptsPage) SetFromGenerator(generator *core.Generator) {
@@ -28,6 +32,7 @@ func (o *OptsPage) SetFromGenerator(generator *core.Generator) {
 	o.textHeader.SetText(generator.TextHeader)
 	o.eanHeader.SetText(generator.EanHeader)
 	o.pdfFile.SetText(generator.PdfPath)
+	o.timesEachEan.SetText(fmt.Sprint(generator.TimesEachEAN))
 }
 
 func (o *OptsPage) optsPage(
@@ -45,6 +50,7 @@ func (o *OptsPage) optsPage(
 				layout.Rigid(func(gtx C) D {
 					return material.H4(th, "Options").Layout(gtx)
 				}),
+				layout.Rigid(inset(layout.Inset{Top: unit.Dp(15)}, o.timesEachEan.GetWidget(th))),
 				layout.Rigid(inset(layout.Inset{Top: unit.Dp(15)}, o.csvComma.GetWidget(th))),
 				layout.Rigid(inset(layout.Inset{Top: unit.Dp(15)}, o.textHeader.GetWidget(th))),
 				layout.Rigid(inset(layout.Inset{Top: unit.Dp(15)}, o.eanHeader.GetWidget(th))),
@@ -56,8 +62,18 @@ func (o *OptsPage) optsPage(
 						comma, err := core.CommaFromString(commaStr)
 						if err != nil {
 							message.setError(err)
+						} else {
+							generator.CsvComma = comma
 						}
-						generator.CsvComma = comma
+
+						timesEachEan, err := strconv.ParseUint(strings.TrimSpace(o.timesEachEan.GetText()), 10, 0)
+						if err != nil {
+							message.setError(errors.New(fmt.Sprintf("Times each EAN must be positive integer not '%s'.", o.timesEachEan.GetText())))
+						} else if timesEachEan <= 0 {
+							message.setError(errors.New("Times each EAN must be positive integer not zero."))
+						} else {
+							generator.TimesEachEAN = uint(timesEachEan)
+						}
 
 						generator.TextHeader = o.textHeader.GetText()
 						generator.EanHeader = o.eanHeader.GetText()

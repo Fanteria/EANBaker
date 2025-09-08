@@ -1,7 +1,7 @@
 package core
 
 import (
-	"log"
+	"errors"
 	"os"
 	"path/filepath"
 
@@ -29,7 +29,10 @@ func NewPdf() Pdf {
 }
 
 // Add records to pdf
-func (p *Pdf) AddPages(records []Record) error {
+func (p *Pdf) AddPages(records []Record, times uint) error {
+	if times == 0 {
+		return errors.New("Bar code must be added at lease once time.")
+	}
 	// Create temporary directory
 	dir, err := os.MkdirTemp("", "generate-barcodes-*")
 	if err != nil {
@@ -42,9 +45,11 @@ func (p *Pdf) AddPages(records []Record) error {
 		barcode_path := filepath.Join(dir, record.Ean+".png")
 		err := record.GenerateBarcode(barcode_path)
 		if err != nil {
-			log.Fatal(err)
+			return err
 		}
-		p.addPage(record, barcode_path)
+		for i:=0; i< int(times); i++ {
+			p.addPage(record, barcode_path)
+		}
 	}
 
 	return nil

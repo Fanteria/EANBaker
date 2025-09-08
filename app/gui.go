@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"image/color"
 	"log"
 	"os"
@@ -71,7 +72,7 @@ func runUI(w *app.Window) error {
 
 	generator, err := core.LoadGenerator("./." + NAME + ".json")
 	if err != nil {
-		generator = &core.Generator{}
+		generator = &core.Generator{TimesEachEAN: 1}
 	}
 
 	mainPage := MainPage{
@@ -81,10 +82,11 @@ func runUI(w *app.Window) error {
 	}
 
 	optsPage := OptsPage{
-		csvComma:   NewInputField(string(generator.CsvComma), "Csv sep", "Csv column separator"),
-		textHeader: NewInputField(generator.TextHeader, "Text", "Text column header"),
-		eanHeader:  NewInputField(generator.EanHeader, "EAN", "EAN column header"),
-		pdfFile:    NewInputField(generator.PdfPath, "Pdf path", "Static path to generated pdf."),
+		csvComma:     NewInputField(string(generator.CsvComma), "Csv sep", "Csv column separator"),
+		textHeader:   NewInputField(generator.TextHeader, "Text", "Text column header"),
+		eanHeader:    NewInputField(generator.EanHeader, "EAN", "EAN column header"),
+		pdfFile:      NewInputField(generator.PdfPath, "Pdf path", "Static path to generated pdf."),
+		timesEachEan: NewInputField(fmt.Sprint(generator.TimesEachEAN), "Times each EAN", "Number of times each EAN code will be printed in the output PDF."),
 	}
 
 	for {

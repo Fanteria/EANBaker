@@ -42,11 +42,12 @@ func (r *Comma) UnmarshalJSON(data []byte) error {
 }
 
 type Generator struct {
-	CsvPath    string `json:"csv_path"`
-	PdfPath    string `json:"pdf_path"`
-	CsvComma   Comma  `json:"csv_comma"`
-	TextHeader string `json:"text_header"`
-	EanHeader  string `json:"ean_header"`
+	CsvPath      string `json:"csv_path"`
+	PdfPath      string `json:"pdf_path"`
+	CsvComma     Comma  `json:"csv_comma"`
+	TextHeader   string `json:"text_header"`
+	EanHeader    string `json:"ean_header"`
+	TimesEachEAN uint   `json:"times_each_ean"`
 }
 
 // Check if generator is valid.
@@ -131,7 +132,7 @@ func (g *Generator) GeneratePdf() error {
 		return err
 	}
 	pdf := NewPdf()
-	pdf.AddPages(records)
+	pdf.AddPages(records, g.TimesEachEAN)
 	err = pdf.Save(g.PdfPath)
 	if err != nil {
 		return err

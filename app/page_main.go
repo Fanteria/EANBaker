@@ -78,7 +78,7 @@ func (m *MainPage) mainPage(
 								}
 
 								pdf := core.NewPdf()
-								pdf.AddPages(records)
+								pdf.AddPages(records, generator.TimesEachEAN)
 								err = pdf.Save(pdfFile)
 								if err != nil {
 									return err
