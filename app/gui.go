@@ -27,6 +27,7 @@ type Message struct {
 	messageType MessageType
 }
 
+// Sets the message to an error state if the provided error is not nil.
 func (m *Message) setError(err error) {
 	if err != nil {
 		m.message = err.Error()
@@ -36,6 +37,10 @@ func (m *Message) setError(err error) {
 
 const NAME string = "EANBaker"
 
+// Starts the GUI application in a separate goroutine.
+// Creates a new window and runs the UI event loop.
+// Exits the program when the window is closed.
+// Returns an error if the GUI fails to start.
 func RunGui() error {
 	go func() {
 		window := new(app.Window)
@@ -54,12 +59,19 @@ type (
 	D = layout.Dimensions
 )
 
+// Inset wraps a widget with the specified inset padding.
+// Returns a new widget function that applies the inset layout
+// to the provided widget.
 func inset(inset layout.Inset, widget layout.Widget) layout.Widget {
 	return func(gtx C) D {
 		return inset.Layout(gtx, widget)
 	}
 }
 
+// Handles the main UI event loop for the application window.
+// Manages page switching between main and options pages,
+// handles button clicks, and renders the UI based on current state.
+// Processes window events until destruction.
 func runUI(w *app.Window) error {
 	var message Message
 

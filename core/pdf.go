@@ -12,7 +12,9 @@ type Pdf struct {
 	pdf *fpdf.Fpdf
 }
 
-// Create new pdf instance
+// Creates and configures a new PDF document for barcode generation.
+// Sets up landscape orientation with custom dimensions (15x30mm) suitable for barcode labels.
+// Disables auto page breaks and removes top margin for optimal barcode layout.
 func NewPdf() Pdf {
 	// Create pdf
 	pdf := fpdf.NewCustom(&fpdf.InitType{
@@ -28,7 +30,9 @@ func NewPdf() Pdf {
 	return Pdf{pdf: pdf}
 }
 
-// Add records to pdf
+// Adds barcode pages to the PDF for each record.
+// Creates temporary barcode images and adds the specified number of pages per record.
+// Each page contains the record text, barcode image, and EAN number.
 func (p *Pdf) AddPages(records []Record, times uint) error {
 	if times == 0 {
 		return errors.New("Bar code must be added at lease once time.")
@@ -55,6 +59,9 @@ func (p *Pdf) AddPages(records []Record, times uint) error {
 	return nil
 }
 
+// Adds a single barcode page to the PDF document.
+// Layouts the record text at the top, barcode image
+// in the center, and EAN number at the bottom.
 func (p *Pdf) addPage(record Record, image string) error {
 	p.pdf.AddPage()
 	p.pdf.SetFont("Arial", "", 4)
@@ -68,7 +75,7 @@ func (p *Pdf) addPage(record Record, image string) error {
 	imageHeight := 7.0
 	p.pdf.ImageOptions(image, 1.5, 5.0, imageWidth, imageHeight, false, fpdf.ImageOptions{}, 0, "")
 
-	// Footer ean in text
+	// Footer EAN in text
 	p.pdf.SetFooterFuncLpi(func(lastPage bool) {
 		p.pdf.SetXY(0, 0)
 		p.pdf.CellFormat(30.0, 14.0, record.Ean, "", 0, "CB", false, 0, "")
@@ -76,7 +83,8 @@ func (p *Pdf) addPage(record Record, image string) error {
 	return nil
 }
 
-// Save instance to new pdf file.
+// Save writes the PDF document to the specified file path and closes it.
+// Returns an error if the file cannot be created or written.
 func (p *Pdf) Save(path string) error {
 	err := p.pdf.OutputFileAndClose(path)
 	if err != nil {

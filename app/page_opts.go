@@ -14,7 +14,6 @@ import (
 )
 
 type OptsPage struct {
-	// file       openFileDialog
 	csvComma     inputField
 	textHeader   inputField
 	eanHeader    inputField
@@ -23,6 +22,8 @@ type OptsPage struct {
 	timesEachEan inputField
 }
 
+// Updates all options page input fields with values from the generator.
+// Synchronizes CSV comma, headers, PDF path, and repetition settings with the generator's configuration.
 func (o *OptsPage) SetFromGenerator(generator *core.Generator) {
 	if generator.CsvComma == 0 {
 		o.csvComma.SetText("")
@@ -35,6 +36,9 @@ func (o *OptsPage) SetFromGenerator(generator *core.Generator) {
 	o.timesEachEan.SetText(fmt.Sprint(generator.TimesEachEAN))
 }
 
+// Renders the options page layout with configuration input fields and save functionality.
+// Handles validation and updating of generator settings including CSV separator, headers,
+// PDF path, and barcode repetition count. Returns the dimensions of the rendered layout.
 func (o *OptsPage) optsPage(
 	gtx C,
 	th *material.Theme,

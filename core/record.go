@@ -16,6 +16,9 @@ type Record struct {
 	Ean  string
 }
 
+// Extracts Record structures from a 2D string table using column headers.
+// Finds the specified text and EAN columns (case-insensitive) and creates records for each row.
+// Skips rows with empty EAN values. Returns an error if headers are not found or table is empty.
 func RecordsFromTable(table [][]string, text string, ean string) ([]Record, error) {
 	if text == "" {
 		return nil, errors.New("Text column header cannot be empty")
@@ -57,6 +60,8 @@ func RecordsFromTable(table [][]string, text string, ean string) ([]Record, erro
 	return ret, nil
 }
 
+// Creates a PNG barcode image file for the record's EAN code.
+// Generates an EAN barcode, scales it to 200x200 pixels, and saves it to the specified path.
 func (r *Record) GenerateBarcode(path string) error {
 	// Create the barcode
 	qrCode, err := ean.Encode(r.Ean)

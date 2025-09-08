@@ -11,6 +11,9 @@ import (
 
 type Table [][]string
 
+// Reads CSV data from an io.Reader and returns it as a 2D string table.
+// Uses the specified comma rune as the field separator. If comma is 0,
+// uses the default separator.
 func TableFromCsv(r io.Reader, comma rune) (Table, error) {
 	if r == nil {
 		return nil, errors.New("Reader is <nil>")
@@ -31,6 +34,8 @@ func TableFromCsv(r io.Reader, comma rune) (Table, error) {
 	return Table(csv_data), nil
 }
 
+// Reads Excel data from an io.Reader and returns the first sheet as a 2D string table.
+// Opens the Excel file and extracts all rows from the first available sheet.
 func TableFromExcel(r io.Reader, sheet int) (Table, error) {
 	exel, err := excelize.OpenReader(r)
 	if err != nil {

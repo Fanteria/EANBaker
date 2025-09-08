@@ -36,6 +36,9 @@ Description:
 Flags:
 `
 
+// Parses command-line flags and creates a configured Generator instance.
+// Defines and parses all CLI options including CSV path, PDF path, headers, and barcode repetition.
+// Validates the configuration before returning the generator.
 func GetOpts() (*core.Generator, error) {
 	// Define flags
 	generator := core.Generator{}

@@ -11,6 +11,9 @@ import (
 
 type Comma rune
 
+// Converts a string to a Comma rune type.
+// Returns 0 for empty strings, or the first rune for single-character strings.
+// Returns an error for multi-character strings.
 func CommaFromString(s string) (Comma, error) {
 	if len(s) == 0 {
 		return 0, nil
@@ -21,10 +24,14 @@ func CommaFromString(s string) (Comma, error) {
 	return Comma([]rune(s)[0]), nil
 }
 
+// Implements the json.Marshaler interface for Comma.
+// Converts the Comma rune to a JSON string representation.
 func (r Comma) MarshalJSON() ([]byte, error) {
 	return json.Marshal(string(r))
 }
 
+// Implements the json.Unmarshaler interface for Comma.
+// Converts a JSON string to a Comma rune, validating it's a single character.
 func (r *Comma) UnmarshalJSON(data []byte) error {
 	var s string
 	if err := json.Unmarshal(data, &s); err != nil {
@@ -50,7 +57,9 @@ type Generator struct {
 	TimesEachEAN uint   `json:"times_each_ean"`
 }
 
-// Check if generator is valid.
+// Validate checks if the generator configuration is valid.
+// Verifies that CSV input file has .csv extension and PDF
+// output file has .pdf extension.
 func (g *Generator) Validate() error {
 	{
 		ext := filepath.Ext(g.CsvPath)
@@ -67,7 +76,8 @@ func (g *Generator) Validate() error {
 	return nil
 }
 
-// If pdf path is not set, update it to valid one.
+// Sets the PDF output path if it's not already configured.
+// Generates a PDF path based on the CSV input path by changing the extension.
 func (g *Generator) UpdatePdfPath() {
 	if g.PdfPath != "" {
 		return
@@ -75,12 +85,15 @@ func (g *Generator) UpdatePdfPath() {
 	g.PdfPath = GeneratePdfPath(g.CsvPath)
 }
 
+// Creates a PDF filename from an input file path.
+// Extracts the base filename and replaces the extension with .pdf.
 func GeneratePdfPath(path string) string {
 	ext := filepath.Ext(path)
 	return strings.TrimSuffix(filepath.Base(path), ext) + ".pdf"
 }
 
-// Load generator from file.
+// Reads and deserializes a generator configuration from a JSON file.
+// Returns a pointer to the loaded Generator or an error if loading fails.
 func LoadGenerator(path string) (*Generator, error) {
 	file, err := os.Open(path)
 	if err != nil {
@@ -95,7 +108,8 @@ func LoadGenerator(path string) (*Generator, error) {
 	return &g, nil
 }
 
-// Save generator to file.
+// Save serializes and writes the generator configuration to a JSON file.
+// Creates the file with proper indentation for readability.
 func (g *Generator) Save(path string) error {
 	file, err := os.Create(path)
 	if err != nil {
@@ -108,7 +122,9 @@ func (g *Generator) Save(path string) error {
 	return encoder.Encode(g)
 }
 
-// Generate pdf from actual instance of generator.
+// Processes the CSV file and generates a PDF with barcodes.
+// Validates configuration, reads the CSV file, extracts records, and creates a PDF
+// with the specified number of repetitions for each barcode.
 func (g *Generator) GeneratePdf() error {
 	err := g.Validate()
 	if err != nil {

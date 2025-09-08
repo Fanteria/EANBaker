@@ -18,11 +18,16 @@ type MainPage struct {
 	submitBtn  widget.Clickable
 }
 
+// Updates the main page input fields with values from the generator.
+// Synchronizes the text header and EAN header fields with the generator's current settings.
 func (m *MainPage) SetFromGenerator(generator *core.Generator) {
 	m.textHeader.SetText(generator.TextHeader)
 	m.eanHeader.SetText(generator.EanHeader)
 }
 
+// Renders the main page layout with file selection, input fields, and submit functionality.
+// Handles file processing (CSV/Excel), record extraction, PDF generation, and configuration saving.
+// Returns the dimensions of the rendered layout.
 func (m *MainPage) mainPage(
 	gtx C,
 	th *material.Theme,
