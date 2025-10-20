@@ -46,6 +46,8 @@ func GetOpts() (*core.Generator, error) {
 	flag.StringVar(&generator.PdfPath, "pdf", "", "Path to the generated pdf file. If is not set, CSV file path with suffix changed to pdf is used.")
 	flag.StringVar(&generator.TextHeader, "text-header", "Material Number", "Case insensitive header of column that will be used as text.")
 	flag.StringVar(&generator.EanHeader, "ean-header", "ean", "Case insensitive header of column containing ean codes that will be used to generate barcode.")
+	flag.StringVar(&generator.TimesHeader, "times-header", "", `Name of the column that specifies how many times each EAN code should be generated. If the column is empty, each EAN code is generated only once.
+If the column contains a number, the EAN code is generated that many times. Rows are processed line by line, so identical EANs appear consecutively.`)
 	timesEachEan := flag.Uint("times-each-ean", 1, "Number of times each EAN code will be printed in the output PDF.")
 	var comma_string string
 	flag.StringVar(&comma_string, "csv-separator", ",", "CSV file column separator.")

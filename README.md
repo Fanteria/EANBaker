@@ -58,14 +58,15 @@ Use command-line flags for automated processing:
 
 #### Command Line Options:
 
-| Flag              | Default            | Description                                      |
-| ----------------- | ------------------ | ------------------------------------------------ |
-| `-csv`            | `data.csv`         | Path to input CSV file                           |
-| `-pdf`            | (_auto-generated_) | Output PDF file path                             |
-| `-text-header`    | `Material Number`  | Column header for text labels (case-insensitive) |
-| `-ean-header`     | `ean`              | Column header for EAN codes (case-insensitive)   |
-| `-times-each-ean` | `1`                | Number of copies per barcode                     |
-| `-csv-separator`  | `,`                | CSV column separator character                   |
+| Flag              | Default            | Description                                           |
+| ----------------- | ------------------ | ----------------------------------------------------- |
+| `-csv`            | `data.csv`         | Path to input CSV file                                |
+| `-pdf`            | (_CSV file name_)  | Output PDF file path                                  |
+| `-text-header`    | `Material Number`  | Column header for text labels (case-insensitive)      |
+| `-ean-header`     | `ean`              | Column header for EAN codes (case-insensitive)        |
+| `-times-header`   | `""`               | Column containing repetition counts for each EAN code | 
+| `-times-each-ean` | `1`                | Number of copies per barcode                          |
+| `-csv-separator`  | `,`                | CSV column separator character                        |
 
 #### Examples:
 
