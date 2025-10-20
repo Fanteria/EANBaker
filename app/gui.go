@@ -91,12 +91,14 @@ func runUI(w *app.Window) error {
 		file:       NewOpenFileDialog("Choose file"),
 		textHeader: NewInputField(generator.TextHeader, "Text", "Text column header"),
 		eanHeader:  NewInputField(generator.EanHeader, "EAN", "EAN column header"),
+		timesHeader:  NewInputField(generator.TimesHeader, "Times", "Times column header (print once if empty)"),
 	}
 
 	optsPage := OptsPage{
 		csvComma:     NewInputField(string(generator.CsvComma), "Csv sep", "Csv column separator"),
 		textHeader:   NewInputField(generator.TextHeader, "Text", "Text column header"),
 		eanHeader:    NewInputField(generator.EanHeader, "EAN", "EAN column header"),
+		timesHeader:  NewInputField(generator.TimesHeader, "Times", "Times column header (print once if empty)"),
 		pdfFile:      NewInputField(generator.PdfPath, "Pdf path", "Static path to generated pdf."),
 		timesEachEan: NewInputField(fmt.Sprint(generator.TimesEachEAN), "Times each EAN", "Number of times each EAN code will be printed in the output PDF."),
 	}

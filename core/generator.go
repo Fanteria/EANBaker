@@ -54,6 +54,7 @@ type Generator struct {
 	CsvComma     Comma  `json:"csv_comma"`
 	TextHeader   string `json:"text_header"`
 	EanHeader    string `json:"ean_header"`
+	TimesHeader  string `json:"times_header"`
 	TimesEachEAN uint   `json:"times_each_ean"`
 }
 
@@ -143,7 +144,7 @@ func (g *Generator) GeneratePdf() error {
 		return err
 	}
 
-	records, err := RecordsFromTable(csv, g.TextHeader, g.EanHeader)
+	records, err := RecordsFromTable(csv, g.TextHeader, g.EanHeader, g.TimesHeader)
 	if err != nil {
 		return err
 	}

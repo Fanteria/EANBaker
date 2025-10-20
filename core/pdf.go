@@ -51,7 +51,7 @@ func (p *Pdf) AddPages(records []Record, times uint) error {
 		if err != nil {
 			return err
 		}
-		for i:=0; i< int(times); i++ {
+		for i:=0; i< int(times) + record.Times; i++ {
 			p.addPage(record, barcode_path)
 		}
 	}

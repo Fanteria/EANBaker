@@ -12,10 +12,11 @@ import (
 )
 
 type MainPage struct {
-	file       openFileDialog
-	textHeader inputField
-	eanHeader  inputField
-	submitBtn  widget.Clickable
+	file        openFileDialog
+	textHeader  inputField
+	eanHeader   inputField
+	timesHeader inputField
+	submitBtn   widget.Clickable
 }
 
 // Updates the main page input fields with values from the generator.
@@ -23,6 +24,7 @@ type MainPage struct {
 func (m *MainPage) SetFromGenerator(generator *core.Generator) {
 	m.textHeader.SetText(generator.TextHeader)
 	m.eanHeader.SetText(generator.EanHeader)
+	m.timesHeader.SetText(generator.EanHeader)
 }
 
 // Renders the main page layout with file selection, input fields, and submit functionality.
@@ -46,6 +48,7 @@ func (m *MainPage) mainPage(
 				layout.Rigid(inset(layout.Inset{Top: unit.Dp(15)}, m.file.GetWidget(th, message))),
 				layout.Rigid(inset(layout.Inset{Top: unit.Dp(15)}, m.textHeader.GetWidget(th))),
 				layout.Rigid(inset(layout.Inset{Top: unit.Dp(15)}, m.eanHeader.GetWidget(th))),
+				layout.Rigid(inset(layout.Inset{Top: unit.Dp(15)}, m.timesHeader.GetWidget(th))),
 				layout.Rigid(inset(layout.Inset{Top: unit.Dp(20)}, func(gtx C) D {
 					if m.submitBtn.Clicked(gtx) {
 						if m.file.GetFileContent() == nil {
@@ -69,7 +72,8 @@ func (m *MainPage) mainPage(
 								records, err := core.RecordsFromTable(
 									table,
 									m.textHeader.GetText(),
-									m.eanHeader.GetText())
+									m.eanHeader.GetText(),
+									m.timesHeader.GetText())
 								if err != nil {
 									return err
 								}
@@ -93,6 +97,7 @@ func (m *MainPage) mainPage(
 								}
 								generator.TextHeader = m.textHeader.GetText()
 								generator.EanHeader = m.eanHeader.GetText()
+								generator.TimesHeader = m.timesHeader.GetText()
 								generator.Save("./." + NAME + ".json")
 								setHidden("./." + NAME + ".json")
 								return nil

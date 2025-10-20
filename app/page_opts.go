@@ -17,6 +17,7 @@ type OptsPage struct {
 	csvComma     inputField
 	textHeader   inputField
 	eanHeader    inputField
+	timesHeader  inputField
 	pdfFile      inputField
 	saveBtn      widget.Clickable
 	timesEachEan inputField
@@ -32,6 +33,7 @@ func (o *OptsPage) SetFromGenerator(generator *core.Generator) {
 	}
 	o.textHeader.SetText(generator.TextHeader)
 	o.eanHeader.SetText(generator.EanHeader)
+	o.timesHeader.SetText(generator.TimesHeader)
 	o.pdfFile.SetText(generator.PdfPath)
 	o.timesEachEan.SetText(fmt.Sprint(generator.TimesEachEAN))
 }
@@ -58,6 +60,7 @@ func (o *OptsPage) optsPage(
 				layout.Rigid(inset(layout.Inset{Top: unit.Dp(15)}, o.csvComma.GetWidget(th))),
 				layout.Rigid(inset(layout.Inset{Top: unit.Dp(15)}, o.textHeader.GetWidget(th))),
 				layout.Rigid(inset(layout.Inset{Top: unit.Dp(15)}, o.eanHeader.GetWidget(th))),
+				layout.Rigid(inset(layout.Inset{Top: unit.Dp(15)}, o.timesHeader.GetWidget(th))),
 				layout.Rigid(inset(layout.Inset{Top: unit.Dp(15)}, o.pdfFile.GetWidget(th))),
 				layout.Rigid(inset(layout.Inset{Top: unit.Dp(20)}, func(gtx C) D {
 					if o.saveBtn.Clicked(gtx) {
@@ -72,7 +75,7 @@ func (o *OptsPage) optsPage(
 
 						timesEachEan, err := strconv.ParseUint(strings.TrimSpace(o.timesEachEan.GetText()), 10, 0)
 						if err != nil {
-							message.setError(errors.New(fmt.Sprintf("Times each EAN must be positive integer not '%s'.", o.timesEachEan.GetText())))
+							message.setError(fmt.Errorf("Times each EAN must be positive integer not '%s'.", o.timesEachEan.GetText()))
 						} else if timesEachEan <= 0 {
 							message.setError(errors.New("Times each EAN must be positive integer not zero."))
 						} else {
@@ -81,6 +84,7 @@ func (o *OptsPage) optsPage(
 
 						generator.TextHeader = o.textHeader.GetText()
 						generator.EanHeader = o.eanHeader.GetText()
+						generator.TimesHeader = o.timesHeader.GetText()
 						generator.PdfPath = o.pdfFile.GetText()
 					}
 					return material.Button(th, &o.saveBtn, "Save").Layout(gtx)

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"image/png"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/boombuler/barcode"
@@ -12,14 +13,15 @@ import (
 )
 
 type Record struct {
-	Text string
-	Ean  string
+	Text  string
+	Ean   string
+	Times int
 }
 
 // Extracts Record structures from a 2D string table using column headers.
 // Finds the specified text and EAN columns (case-insensitive) and creates records for each row.
 // Skips rows with empty EAN values. Returns an error if headers are not found or table is empty.
-func RecordsFromTable(table [][]string, text string, ean string) ([]Record, error) {
+func RecordsFromTable(table [][]string, text string, ean string, times string) ([]Record, error) {
 	if text == "" {
 		return nil, errors.New("Text column header cannot be empty")
 	}
@@ -33,28 +35,54 @@ func RecordsFromTable(table [][]string, text string, ean string) ([]Record, erro
 	// Find headers
 	text_index := -1
 	ean_index := -1
+	times_index := -1
 	text_lower := strings.ToLower(text)
 	ean_lower := strings.ToLower(ean)
+	times_lower := strings.ToLower(times)
 	for i, item := range table[0] {
-		if strings.ToLower(item) == text_lower {
+		switch strings.ToLower(item) {
+		case text_lower:
 			text_index = i
-		} else if strings.ToLower(item) == ean_lower {
+		case ean_lower:
 			ean_index = i
+		case times_lower:
+			times_index = i
 		}
 	}
 	// Check if headers was found
 	if text_index == -1 {
-		return nil, errors.New(fmt.Sprintf("Cannot find text header '%s'", text))
+		return nil, fmt.Errorf("Cannot find text header '%s'", text)
 	}
 	if ean_index == -1 {
-		return nil, errors.New(fmt.Sprintf("Cannot find ean header '%s'", ean))
+		return nil, fmt.Errorf("Cannot find ean header '%s'", ean)
+	}
+	if times_index == -1 && strings.TrimSpace(times) != "" {
+		return nil, fmt.Errorf("Cannot find times header '%s'", times)
 	}
 
 	// Print each record
 	ret := []Record{}
 	for _, csv_line := range table[1:] {
 		if csv_line[ean_index] != "" {
-			ret = append(ret, Record{Text: csv_line[text_index], Ean: csv_line[ean_index]})
+			times_value := 1
+			if times_index != -1 {
+				times_str := strings.TrimSpace(csv_line[times_index])
+				value_float, err := strconv.ParseFloat(times_str, 0)
+				if err != nil {
+					value_int, err := strconv.ParseInt(times_str, 10, 0)
+					if err != nil {
+						return nil, errors.Join(errors.New("Times column contain non numeric string"), err)
+					}
+					times_value = int(value_int)
+				} else {
+					times_value = int(value_float)
+				}
+			}
+			ret = append(ret, Record{
+					Text: csv_line[text_index],
+					Ean: csv_line[ean_index],
+					Times: times_value,
+			})
 		}
 	}
 	return ret, nil
