@@ -3,8 +3,8 @@ package core
 import (
 	"encoding/csv"
 	"errors"
-	"fmt"
 	"io"
+	"log"
 
 	"github.com/xuri/excelize/v2"
 )
@@ -21,7 +21,7 @@ func TableFromCsv(r io.Reader, comma rune) (Table, error) {
 
 	// Create a new CSV reader
 	reader := csv.NewReader(r)
-	fmt.Printf("Comma: '%d'", comma)
+	log.Printf("Comma: '%d'", comma)
 	if comma != 0 {
 		reader.Comma = comma
 	}
@@ -43,6 +43,7 @@ func TableFromExcel(r io.Reader, sheet int) (Table, error) {
 	}
 
 	sheets := exel.GetSheetList()
+	log.Println("Sheets:", sheets)
 	if len(sheets) == 0 {
 		return nil, errors.New("Excel containing 0 sheets.")
 	}

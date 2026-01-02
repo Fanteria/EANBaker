@@ -41,10 +41,10 @@ const NAME string = "EANBaker"
 // Creates a new window and runs the UI event loop.
 // Exits the program when the window is closed.
 // Returns an error if the GUI fails to start.
-func RunGui() error {
+func RunGui(logger *core.MultiLogger) error {
 	go func() {
 		window := new(app.Window)
-		err := runUI(window)
+		err := runUI(window, logger)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -72,7 +72,7 @@ func inset(inset layout.Inset, widget layout.Widget) layout.Widget {
 // Manages page switching between main and options pages,
 // handles button clicks, and renders the UI based on current state.
 // Processes window events until destruction.
-func runUI(w *app.Window) error {
+func runUI(w *app.Window, log *core.MultiLogger) error {
 	var message Message
 
 	messageBtn := widget.Clickable{}
@@ -82,7 +82,7 @@ func runUI(w *app.Window) error {
 	var ops op.Ops
 	th := material.NewTheme()
 
-	generator, err := core.LoadGenerator("./." + NAME + ".json")
+	generator, err := core.LoadGenerator("./." + NAME + ".json", log.Logger)
 	if err != nil {
 		generator = &core.Generator{TimesEachEAN: 1}
 	}
@@ -121,7 +121,7 @@ func runUI(w *app.Window) error {
 						if openOptions {
 							return optsPage.optsPage(gtx, th, generator, &message)
 						} else {
-							return mainPage.mainPage(gtx, th, generator, &message)
+							return mainPage.mainPage(gtx, th, generator, &message, log.Logger)
 						}
 					}),
 					layout.Stacked(func(gtx C) D {

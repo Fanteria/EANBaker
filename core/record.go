@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"image/png"
+	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -78,13 +79,17 @@ func RecordsFromTable(table [][]string, text string, ean string, times string) (
 					times_value = int(value_float)
 				}
 			}
-			ret = append(ret, Record{
-					Text: csv_line[text_index],
-					Ean: csv_line[ean_index],
+			record :=
+				Record{
+					Text:  csv_line[text_index],
+					Ean:   csv_line[ean_index],
 					Times: times_value,
-			})
+				}
+			log.Println("Append record:", record)
+			ret = append(ret, record)
 		}
 	}
+	log.Println("Record list from table:", ret)
 	return ret, nil
 }
 
