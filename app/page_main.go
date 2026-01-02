@@ -1,7 +1,9 @@
 package app
 
 import (
+	"errors"
 	"fmt"
+	"log/slog"
 	"strings"
 
 	"gioui.org/layout"
@@ -35,6 +37,7 @@ func (m *MainPage) mainPage(
 	th *material.Theme,
 	generator *core.Generator,
 	message *Message,
+	log *slog.Logger,
 ) D {
 	return layout.Center.Layout(gtx, func(gtx C) D {
 		return layout.UniformInset(unit.Dp(20)).Layout(gtx, func(gtx C) D {
@@ -51,62 +54,32 @@ func (m *MainPage) mainPage(
 				layout.Rigid(inset(layout.Inset{Top: unit.Dp(15)}, m.timesHeader.GetWidget(th))),
 				layout.Rigid(inset(layout.Inset{Top: unit.Dp(20)}, func(gtx C) D {
 					if m.submitBtn.Clicked(gtx) {
-						if m.file.GetFileContent() == nil {
-							message.message = "Input file must be set."
-							message.messageType = Error
-						} else {
-							err := func() error {
-
-								table, err := core.TableFromCsv(
-									strings.NewReader(*m.file.GetFileContent()),
-									rune(generator.CsvComma))
-								if err != nil {
-									table, err = core.TableFromExcel(
-										strings.NewReader(*m.file.GetFileContent()),
-										0)
-									if err != nil {
-										return err
-									}
-								}
-
-								records, err := core.RecordsFromTable(
-									table,
-									m.textHeader.GetText(),
-									m.eanHeader.GetText(),
-									m.timesHeader.GetText())
-								if err != nil {
-									return err
-								}
-
-								pdfFile := "./" + NAME + ".pdf"
-								if m.file.GetFileName() != "" {
-									pdfFile = core.GeneratePdfPath(m.file.GetFileName())
-								}
-								if generator.PdfPath != "" {
-									pdfFile = generator.PdfPath
-								}
-
-								pdf := core.NewPdf()
-								pdf.AddPages(records, generator.TimesEachEAN)
-								err = pdf.Save(pdfFile)
-								if err != nil {
-									return err
-								} else {
-									message.message = fmt.Sprintf("File %s saved.", pdfFile)
-									message.messageType = Info
-								}
-								generator.TextHeader = m.textHeader.GetText()
-								generator.EanHeader = m.eanHeader.GetText()
-								generator.TimesHeader = m.timesHeader.GetText()
-								generator.Save("./." + NAME + ".json")
-								setHidden("./." + NAME + ".json")
-								return nil
-							}()
-
-							if err != nil {
-								message.setError(err)
+						// Run button clicked function, if return error set it.
+						message.setError(func() error {
+							if m.file.GetFileContent() == nil {
+								return errors.New("Input file must be set.")
 							}
-						}
+							// Set generator values
+							generator.PdfPath = "./" + NAME + ".pdf"
+							if m.file.GetFileName() != "" {
+								generator.PdfPath = core.GeneratePdfPath(m.file.GetFileName())
+							}
+							generator.TextHeader = m.textHeader.GetText()
+							generator.EanHeader = m.eanHeader.GetText()
+							generator.TimesHeader = m.timesHeader.GetText()
+							// generator.TimesEachEAN
+							err := generator.Generate(
+								m.file.GetFileName(),
+								strings.NewReader(*m.file.GetFileContent()),
+								log)
+							if err != nil {
+								return err
+							}
+							message.message = fmt.Sprintf("File %s saved.", generator.PdfPath)
+							message.messageType = Info
+							setHidden("./." + NAME + ".json")
+							return nil
+						}())
 					}
 					return material.Button(th, &m.submitBtn, "Submit").Layout(gtx)
 				})),

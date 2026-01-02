@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
@@ -95,17 +97,21 @@ func GeneratePdfPath(path string) string {
 
 // Reads and deserializes a generator configuration from a JSON file.
 // Returns a pointer to the loaded Generator or an error if loading fails.
-func LoadGenerator(path string) (*Generator, error) {
+func LoadGenerator(path string, log *slog.Logger) (*Generator, error) {
 	file, err := os.Open(path)
 	if err != nil {
-		return nil, errors.Join(errors.New("Cannot load generator"), err)
+		err = errors.Join(errors.New("Cannot load generator"), err)
+		log.Error("Failed to open generator file", "err", err)
+		return nil, err
 	}
 	defer file.Close()
 
 	var g Generator
 	if err := json.NewDecoder(file).Decode(&g); err != nil {
+		log.Error("Failed to decode generator file", "err", err)
 		return nil, err
 	}
+	log.Info("Generator loaded", "generator", g)
 	return &g, nil
 }
 
@@ -123,36 +129,46 @@ func (g *Generator) Save(path string) error {
 	return encoder.Encode(g)
 }
 
-// Processes the CSV file and generates a PDF with barcodes.
-// Validates configuration, reads the CSV file, extracts records, and creates a PDF
-// with the specified number of repetitions for each barcode.
-func (g *Generator) GeneratePdf() error {
-	err := g.Validate()
+// Generator must be valid
+func (g *Generator) GenerateFromTable(table Table, log *slog.Logger) error {
+	records, err := RecordsFromTable(table, g.TextHeader, g.EanHeader, g.TimesHeader)
 	if err != nil {
+		log.Error("Failed to get records from table", "err", err)
 		return err
 	}
-
-	//Open the CSV file
-	file, err := os.Open(g.CsvPath)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	csv, err := TableFromCsv(file, rune(g.CsvComma))
-	if err != nil {
-		return err
-	}
-
-	records, err := RecordsFromTable(csv, g.TextHeader, g.EanHeader, g.TimesHeader)
-	if err != nil {
-		return err
-	}
+	log.Debug("Records in table", "records", records)
 	pdf := NewPdf()
-	pdf.AddPages(records, g.TimesEachEAN)
+	pdf.AddPages(records, g.TimesEachEAN, log)
 	err = pdf.Save(g.PdfPath)
 	if err != nil {
+		log.Error("Failed to save pdf file", "err", err)
 		return err
 	}
 	return nil
+}
+
+func (g *Generator) Generate(filename string, content io.ReadSeeker, log *slog.Logger) error {
+	log.Debug("Try to generate pdf", "filename", filename, "generator", *g)
+	err := g.Validate()
+	if err != nil {
+		log.Error("Generator is invalid", "err", err)
+		return err
+	}
+	log.Info("Generator is valid")
+
+	var table Table
+	switch strings.ToLower(filepath.Ext(filename)) {
+	case "csv":
+		table, err = TableFromCsv(content, rune(g.CsvComma))
+	case "xlsx":
+		table, err = TableFromExcel(content, 0)
+	default:
+		table, err = TableFromCsv(content, rune(g.CsvComma))
+		if err != nil {
+			content.Seek(0, io.SeekStart)
+			table, err = TableFromExcel(content, 0)
+		}
+	}
+	log.Debug("Table to generate pdf", "table", table)
+	return g.GenerateFromTable(table, log)
 }

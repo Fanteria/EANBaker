@@ -11,15 +11,27 @@ import (
 )
 
 func main() {
-	var err error
-	if len(os.Args) == 1 {
-		err = app.RunGui()
-	} else {
-		generator, err := GetOpts()
-		if err == nil {
-			err = generator.GeneratePdf()
+	err := func() error {
+		logger, err := core.MultiLoggerFromEnv()
+		if err != nil {
+			return err
 		}
-	}
+		if len(os.Args) == 1 {
+			return app.RunGui(logger)
+		} else {
+			generator, err := GetOpts()
+			if err == nil {
+				//Open the CSV file
+				file, err := os.Open(generator.CsvPath)
+				if err != nil {
+					return err
+				}
+				defer file.Close()
+				return generator.Generate(generator.CsvPath, file, logger.Logger)
+			}
+			return nil
+		}
+	}()
 	if err != nil {
 		log.Fatal(err)
 	}
