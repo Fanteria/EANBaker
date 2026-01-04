@@ -68,6 +68,8 @@ func RecordsFromTable(table [][]string, text string, ean string, times string) (
 			times_value := 1
 			if times_index != -1 {
 				times_str := strings.TrimSpace(csv_line[times_index])
+				// Some countries use ',' instead of '.' as the decimal separator
+				times_str = strings.ReplaceAll(times_str, ",", ".")
 				value_float, err := strconv.ParseFloat(times_str, 0)
 				if err != nil {
 					value_int, err := strconv.ParseInt(times_str, 10, 0)
