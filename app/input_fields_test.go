@@ -50,7 +50,7 @@ func TestNewInputField(t *testing.T) {
 
 func TestInputField_GetText(t *testing.T) {
 	field := NewInputField("test value", "Test", "hint")
-	
+
 	got := field.GetText()
 	if got != "test value" {
 		t.Errorf("GetText() = %v, want %v", got, "test value")
@@ -59,7 +59,7 @@ func TestInputField_GetText(t *testing.T) {
 
 func TestInputField_SetText(t *testing.T) {
 	field := NewInputField("initial", "Test", "hint")
-	
+
 	field.SetText("new value")
 	got := field.GetText()
 	if got != "new value" {
@@ -69,7 +69,7 @@ func TestInputField_SetText(t *testing.T) {
 
 func TestInputField_SetText_Empty(t *testing.T) {
 	field := NewInputField("initial", "Test", "hint")
-	
+
 	field.SetText("")
 	got := field.GetText()
 	if got != "" {
@@ -79,10 +79,10 @@ func TestInputField_SetText_Empty(t *testing.T) {
 
 func TestInputField_SetText_Overwrite(t *testing.T) {
 	field := NewInputField("first", "Test", "hint")
-	
+
 	field.SetText("second")
 	field.SetText("third")
-	
+
 	got := field.GetText()
 	if got != "third" {
 		t.Errorf("GetText() = %v, want %v", got, "third")
@@ -91,7 +91,7 @@ func TestInputField_SetText_Overwrite(t *testing.T) {
 
 func TestInputField_SingleLine(t *testing.T) {
 	field := NewInputField("", "Test", "hint")
-	
+
 	// Editor should be configured for single line
 	if !field.editor.SingleLine {
 		t.Error("Editor should be configured for single line")
@@ -100,7 +100,7 @@ func TestInputField_SingleLine(t *testing.T) {
 
 func TestInputField_EmptyInitialText(t *testing.T) {
 	field := NewInputField("", "Test", "hint")
-	
+
 	got := field.GetText()
 	if got != "" {
 		t.Errorf("GetText() for empty initial = %v, want empty string", got)

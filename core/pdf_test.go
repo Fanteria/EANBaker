@@ -316,8 +316,8 @@ func TestPdf_FullWorkflow(t *testing.T) {
 
 	// Add various records
 	records := []Record{
-		{Text: "Small Product", Ean: "96385074", Times: 0},       // EAN-8
-		{Text: "Regular Product", Ean: "5901234123457", Times: 1}, // EAN-13 with extra
+		{Text: "Small Product", Ean: "96385074", Times: 0},                 // EAN-8
+		{Text: "Regular Product", Ean: "5901234123457", Times: 1},          // EAN-13 with extra
 		{Text: "Multi-line\nProduct Name", Ean: "4006381333931", Times: 0}, // Multi-line text
 	}
 
@@ -362,7 +362,7 @@ func TestPdf_LargeNumberOfPages(t *testing.T) {
 	defer os.RemoveAll(tmpDir)
 
 	pdf := NewPdf()
-	
+
 	// Create many records
 	records := make([]Record, 50)
 	for i := 0; i < 50; i++ {

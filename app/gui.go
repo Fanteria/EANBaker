@@ -1,10 +1,13 @@
 package app
 
 import (
+	"errors"
 	"fmt"
 	"image/color"
 	"log"
 	"os"
+	"strconv"
+	"strings"
 
 	"gioui.org/app"
 	"gioui.org/layout"
@@ -82,25 +85,56 @@ func runUI(w *app.Window, log *core.MultiLogger) error {
 	var ops op.Ops
 	th := material.NewTheme()
 
-	generator, err := core.LoadGenerator("./." + NAME + ".json", log.Logger)
+	generator, err := core.LoadGenerator("./."+NAME+".json", log.Logger)
 	if err != nil {
 		generator = &core.Generator{TimesEachEAN: 1}
 	}
 
+	textHeader := NewInputField(generator.TextHeader, "Text", "Text column header", func(v string) {
+		generator.TextHeader = v
+	})
+	eanHeader := NewInputField(generator.EanHeader, "EAN", "EAN column header", func(v string) {
+		generator.EanHeader = v
+	})
+	timesHeader := NewInputField(generator.TimesHeader, "Times", "Times column header (print once if empty)", func(v string) {
+		generator.TimesHeader = v
+	})
+	csvComma := NewInputField(string(generator.CsvComma), "Csv sep", "Csv column separator", func(v string) {
+		comma, err := core.CommaFromString(strings.TrimSpace(v))
+		if err != nil {
+			message.setError(err)
+		} else {
+			generator.CsvComma = comma
+		}
+	})
+	pdfFile := NewInputField(generator.PdfPath, "Pdf path", "Static path to generated pdf.", func(v string) {
+		generator.PdfPath = v
+	})
+	timesEachEan := NewInputField(fmt.Sprint(generator.TimesEachEAN), "Times each EAN", "Number of times each EAN code will be printed in the output PDF.", func(v string) {
+		timesEachEan, err := strconv.ParseUint(strings.TrimSpace(v), 10, 0)
+		if err != nil {
+			message.setError(fmt.Errorf("Times each EAN must be positive integer not '%s'.", v))
+		} else if timesEachEan <= 0 {
+			message.setError(errors.New("Times each EAN must be positive integer not zero."))
+		} else {
+			generator.TimesEachEAN = uint(timesEachEan)
+		}
+	})
+
 	mainPage := MainPage{
-		file:       NewOpenFileDialog("Choose file"),
-		textHeader: NewInputField(generator.TextHeader, "Text", "Text column header"),
-		eanHeader:  NewInputField(generator.EanHeader, "EAN", "EAN column header"),
-		timesHeader:  NewInputField(generator.TimesHeader, "Times", "Times column header (print once if empty)"),
+		file:        NewOpenFileDialog("Choose file"),
+		textHeader:  &textHeader,
+		eanHeader:   &eanHeader,
+		timesHeader: &timesHeader,
 	}
 
 	optsPage := OptsPage{
-		csvComma:     NewInputField(string(generator.CsvComma), "Csv sep", "Csv column separator"),
-		textHeader:   NewInputField(generator.TextHeader, "Text", "Text column header"),
-		eanHeader:    NewInputField(generator.EanHeader, "EAN", "EAN column header"),
-		timesHeader:  NewInputField(generator.TimesHeader, "Times", "Times column header (print once if empty)"),
-		pdfFile:      NewInputField(generator.PdfPath, "Pdf path", "Static path to generated pdf."),
-		timesEachEan: NewInputField(fmt.Sprint(generator.TimesEachEAN), "Times each EAN", "Number of times each EAN code will be printed in the output PDF."),
+		csvComma:     &csvComma,
+		textHeader:   &textHeader,
+		eanHeader:    &eanHeader,
+		timesHeader:  &timesHeader,
+		pdfFile:      &pdfFile,
+		timesEachEan: &timesEachEan,
 	}
 
 	for {
@@ -118,11 +152,20 @@ func runUI(w *app.Window, log *core.MultiLogger) error {
 						return layout.Dimensions{Size: gtx.Constraints.Max}
 					}),
 					layout.Expanded(func(gtx C) D {
+						var childs []layout.FlexChild
 						if openOptions {
-							return optsPage.optsPage(gtx, th, generator, &message)
+							childs = optsPage.optsPage(th, generator, &message)
 						} else {
-							return mainPage.mainPage(gtx, th, generator, &message, log.Logger)
+							childs = mainPage.mainPage(th, generator, &message, log.Logger)
 						}
+						return layout.Center.Layout(gtx, func(gtx C) D {
+							return layout.UniformInset(unit.Dp(20)).Layout(gtx, func(gtx C) D {
+								return layout.Flex{
+									Axis:    layout.Vertical,
+									Spacing: layout.SpaceAround,
+								}.Layout(gtx, childs...)
+							})
+						})
 					}),
 					layout.Stacked(func(gtx C) D {
 						return layout.Inset{Top: unit.Dp(20), Left: unit.Dp(20)}.Layout(gtx, func(gtx C) D {
@@ -146,11 +189,6 @@ func runUI(w *app.Window, log *core.MultiLogger) error {
 					layout.Expanded(func(gtx C) D {
 						if optionsBtn.Clicked(gtx) {
 							openOptions = !openOptions
-							if openOptions {
-								optsPage.SetFromGenerator(generator)
-							} else {
-								mainPage.SetFromGenerator(generator)
-							}
 						}
 						return layout.NE.Layout(gtx, func(gtx C) D {
 							return layout.Inset{Top: unit.Dp(20), Right: unit.Dp(20)}.Layout(gtx, func(gtx C) D {

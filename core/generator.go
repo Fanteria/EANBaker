@@ -65,9 +65,9 @@ type Generator struct {
 // output file has .pdf extension.
 func (g *Generator) Validate() error {
 	{
-		ext := filepath.Ext(g.CsvPath)
-		if strings.ToLower(ext) != ".csv" {
-			return errors.New("Error: Input file must have a .csv extension")
+		ext := strings.ToLower(filepath.Ext(g.CsvPath))
+		if ext != ".csv" && ext != ".xlsx" {
+			return fmt.Errorf("Error: Input file must have a .csv or .xlsx extension")
 		}
 	}
 	{

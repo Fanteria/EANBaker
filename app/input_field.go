@@ -11,34 +11,25 @@ type inputField struct {
 	editor     widget.Editor
 	name       string
 	suggestion string
+	setValue   func(value string)
 }
 
 // Creates a new input field widget with the specified configuration.
 // Initializes the editor with the provided text (if not empty), sets single-line mode,
 // and configures the field name and suggestion text.
-func NewInputField(text string, name string, suggestion string) inputField {
+func NewInputField(text string, name string, suggestion string, setValue func(value string)) inputField {
 	ret := inputField{
-		editor:     widget.Editor{},
+		editor:     widget.Editor{SingleLine: true},
 		name:       name,
 		suggestion: suggestion,
+		setValue:   setValue,
 	}
 
 	if text != "" {
 		ret.editor.SetText(text)
 	}
 
-	ret.editor.SingleLine = true
 	return ret
-}
-
-// Returns the current text content of the input field.
-func (i *inputField) GetText() string {
-	return i.editor.Text()
-}
-
-// Updates the text content of the input field.
-func (i *inputField) SetText(text string) {
-	i.editor.SetText(text)
 }
 
 // Returns a layout widget for the input field.
@@ -46,6 +37,7 @@ func (i *inputField) SetText(text string) {
 func (i *inputField) GetWidget(th *material.Theme) layout.Widget {
 	return func(gtx C) D {
 		return layout.UniformInset(unit.Dp(0)).Layout(gtx, func(gtx C) D {
+			i.setValue(i.editor.Text())
 			return layout.Flex{
 				Axis:    layout.Horizontal,
 				Spacing: layout.SpaceAround,

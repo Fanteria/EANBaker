@@ -163,9 +163,9 @@ func TestTableFromCsv_MalformedCSV(t *testing.T) {
 
 func TestTableFromCsv_SpecialCharacters(t *testing.T) {
 	tests := []struct {
-		name  string
-		csv   string
-		want  string
+		name string
+		csv  string
+		want string
 	}{
 		{
 			name: "UTF-8 characters",

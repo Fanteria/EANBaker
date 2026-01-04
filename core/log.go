@@ -57,14 +57,14 @@ func MultiLoggerFromEnv() (*MultiLogger, error) {
 // New creates a new logger that writes to terminal and keeps logs in memory
 func NewMultiLogger(level slog.Level) *MultiLogger {
 	buf := &syncBuffer{}
-	
+
 	// Write to both terminal and buffer
 	multi := io.MultiWriter(os.Stderr, buf)
-	
+
 	handler := slog.NewJSONHandler(multi, &slog.HandlerOptions{
 		Level: level,
 	})
-	
+
 	return &MultiLogger{
 		Logger: slog.New(handler),
 		buffer: buf,
@@ -76,4 +76,3 @@ func NewMultiLogger(level slog.Level) *MultiLogger {
 func (l *MultiLogger) SaveToFile(path string) error {
 	return os.WriteFile(path, l.buffer.Bytes(), 0644)
 }
-

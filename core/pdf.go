@@ -56,7 +56,7 @@ func (p *Pdf) AddPages(records []Record, times uint, log *slog.Logger) error {
 			log.Error("Failed to generate barcode", "err", err)
 			return err
 		}
-		for i:=0; i< int(times) + record.Times; i++ {
+		for i := 0; i < int(times)+record.Times; i++ {
 			log.Debug("Add page", "record", record, "barcode", barcode_path)
 			p.addPage(record, barcode_path)
 		}

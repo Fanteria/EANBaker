@@ -196,10 +196,10 @@ func TestRecordsFromTable_RecordContent(t *testing.T) {
 
 func TestRecordsFromTable_TimesColumn(t *testing.T) {
 	tests := []struct {
-		name       string
-		table      Table
-		wantTimes  int
-		wantErr    bool
+		name      string
+		table     Table
+		wantTimes int
+		wantErr   bool
 	}{
 		{
 			name: "Integer times",
