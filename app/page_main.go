@@ -18,6 +18,7 @@ type MainPage struct {
 	textHeader  *inputField
 	eanHeader   *inputField
 	timesHeader *inputField
+	pdfFile     *inputField
 	submitBtn   widget.Clickable
 }
 
@@ -30,6 +31,11 @@ func (m *MainPage) mainPage(
 	message *Message,
 	log *slog.Logger,
 ) []layout.FlexChild {
+	pdfFileName := m.file.GetFileName()
+	if pdfFileName != "" && generator.PdfPath == "" {
+		generator.PdfPath = core.GeneratePdfPath(m.file.GetFileName())
+		m.pdfFile.Update()
+	}
 	return []layout.FlexChild{
 		layout.Rigid(func(gtx C) D {
 			return material.H4(th, "EANBaker").Layout(gtx)
@@ -38,6 +44,7 @@ func (m *MainPage) mainPage(
 		layout.Rigid(inset(layout.Inset{Top: unit.Dp(15)}, m.textHeader.GetWidget(th))),
 		layout.Rigid(inset(layout.Inset{Top: unit.Dp(15)}, m.eanHeader.GetWidget(th))),
 		layout.Rigid(inset(layout.Inset{Top: unit.Dp(15)}, m.timesHeader.GetWidget(th))),
+		layout.Rigid(inset(layout.Inset{Top: unit.Dp(15)}, m.pdfFile.GetWidget(th))),
 		layout.Rigid(inset(layout.Inset{Top: unit.Dp(20)}, func(gtx C) D {
 			if m.submitBtn.Clicked(gtx) {
 				// Run button clicked function, if return error set it.
@@ -48,12 +55,11 @@ func (m *MainPage) mainPage(
 					}
 					// Set generator values
 					generator.CsvPath = m.file.GetFileName()
+
 					if generator.PdfPath == "" {
 						generator.PdfPath = "./" + NAME + ".pdf"
-						if m.file.GetFileName() != "" {
-							generator.PdfPath = core.GeneratePdfPath(m.file.GetFileName())
-						}
 					}
+
 					err := generator.Generate(
 						m.file.GetFileName(),
 						strings.NewReader(*m.file.GetFileContent()),
@@ -63,7 +69,11 @@ func (m *MainPage) mainPage(
 					}
 					message.message = fmt.Sprintf("File %s saved.", generator.PdfPath)
 					message.messageType = Info
+					log.Info("File generated", "generator", generator)
 					setHidden("./." + NAME + ".json")
+					m.file.Reset()
+					generator.PdfPath = ""
+					m.pdfFile.Update()
 					return nil
 				}())
 			}

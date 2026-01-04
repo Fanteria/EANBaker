@@ -90,41 +90,60 @@ func runUI(w *app.Window, log *core.MultiLogger) error {
 		generator = &core.Generator{TimesEachEAN: 1}
 	}
 
-	textHeader := NewInputField(generator.TextHeader, "Text", "Text column header", func(v string) {
+	textHeader := NewInputField("Text", "Text column header", &message, func(v string) error {
 		generator.TextHeader = v
-	})
-	eanHeader := NewInputField(generator.EanHeader, "EAN", "EAN column header", func(v string) {
+		return nil
+	}, func() string { return generator.TextHeader })
+
+	eanHeader := NewInputField("EAN", "EAN column header", &message, func(v string) error {
 		generator.EanHeader = v
-	})
-	timesHeader := NewInputField(generator.TimesHeader, "Times", "Times column header (print once if empty)", func(v string) {
+		return nil
+	}, func() string { return generator.EanHeader })
+
+	timesHeader := NewInputField("Times", "Times column header (print once if empty)", &message, func(v string) error {
 		generator.TimesHeader = v
-	})
-	csvComma := NewInputField(string(generator.CsvComma), "Csv sep", "Csv column separator", func(v string) {
+		return nil
+	}, func() string { return generator.TimesHeader })
+
+	csvComma := NewInputField("Csv sep", "Csv column separator", &message, func(v string) error {
+		if v == "" {
+			generator.CsvComma = ','
+			return nil
+		}
 		comma, err := core.CommaFromString(strings.TrimSpace(v))
 		if err != nil {
-			message.setError(err)
-		} else {
-			generator.CsvComma = comma
+			return err
 		}
-	})
-	pdfFile := NewInputField(generator.PdfPath, "Pdf path", "Static path to generated pdf.", func(v string) {
+		generator.CsvComma = comma
+		return nil
+	}, func() string { return string(generator.CsvComma) })
+
+	pdfFile := NewInputField("Pdf path", "Static path to generated pdf.", &message, func(v string) error {
 		generator.PdfPath = v
-	})
-	timesEachEan := NewInputField(fmt.Sprint(generator.TimesEachEAN), "Times each EAN", "Number of times each EAN code will be printed in the output PDF.", func(v string) {
+		return nil
+	}, func() string { return generator.PdfPath })
+
+	timesEachEan := NewInputField("Times each EAN", "Number of times each EAN code will be printed in the output PDF.", &message, func(v string) error {
+		if v == "" {
+			generator.TimesEachEAN = 1
+			return nil
+		}
 		timesEachEan, err := strconv.ParseUint(strings.TrimSpace(v), 10, 0)
 		if err != nil {
-			message.setError(fmt.Errorf("Times each EAN must be positive integer not '%s'.", v))
+			return fmt.Errorf("Times each EAN must be positive integer not '%s'.", v)
 		} else if timesEachEan <= 0 {
-			message.setError(errors.New("Times each EAN must be positive integer not zero."))
+			return errors.New("Times each EAN must be positive integer not zero.")
 		} else {
 			generator.TimesEachEAN = uint(timesEachEan)
 		}
-	})
+		return nil
+	}, func() string { return fmt.Sprint(generator.TimesEachEAN) })
 
 	mainPage := MainPage{
 		file:        NewOpenFileDialog("Choose file"),
 		textHeader:  &textHeader,
 		eanHeader:   &eanHeader,
+		pdfFile:     &pdfFile,
 		timesHeader: &timesHeader,
 	}
 

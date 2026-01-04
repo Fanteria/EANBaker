@@ -11,25 +11,31 @@ type inputField struct {
 	editor     widget.Editor
 	name       string
 	suggestion string
-	setValue   func(value string)
+	message    *Message
+	setValue   func(value string) error
+	getValue   func() string
 }
 
 // Creates a new input field widget with the specified configuration.
 // Initializes the editor with the provided text (if not empty), sets single-line mode,
 // and configures the field name and suggestion text.
-func NewInputField(text string, name string, suggestion string, setValue func(value string)) inputField {
+func NewInputField(name string, suggestion string, message *Message, setValue func(value string) error, getValue func() string) inputField {
 	ret := inputField{
 		editor:     widget.Editor{SingleLine: true},
 		name:       name,
 		suggestion: suggestion,
+		message:    message,
 		setValue:   setValue,
+		getValue:   getValue,
 	}
-
-	if text != "" {
-		ret.editor.SetText(text)
-	}
-
+	ret.Update()
 	return ret
+}
+
+// Expect to set valid value
+func (i *inputField) Update() {
+	text := i.getValue()
+	i.editor.SetText(text)
 }
 
 // Returns a layout widget for the input field.
@@ -37,7 +43,11 @@ func NewInputField(text string, name string, suggestion string, setValue func(va
 func (i *inputField) GetWidget(th *material.Theme) layout.Widget {
 	return func(gtx C) D {
 		return layout.UniformInset(unit.Dp(0)).Layout(gtx, func(gtx C) D {
-			i.setValue(i.editor.Text())
+			err := i.setValue(i.editor.Text())
+			if err != nil {
+				i.message.setError(err)
+				i.editor.SetText(i.getValue())
+			}
 			return layout.Flex{
 				Axis:    layout.Horizontal,
 				Spacing: layout.SpaceAround,

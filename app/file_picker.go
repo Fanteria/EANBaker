@@ -95,7 +95,11 @@ func (o *openFileDialog) checkResult(msg *Message) {
 func (o *openFileDialog) GetWidget(th *material.Theme, msg *Message) layout.Widget {
 	o.checkResult(msg)
 	return func(gtx C) D {
-		button := material.Button(th, &o.fileBtn, o.btnText)
+		btnText := o.btnText
+		if o.GetFileName() != "" {
+			btnText += ": " + o.GetFileName()
+		}
+		button := material.Button(th, &o.fileBtn, btnText)
 		if o.fileBtn.Clicked(gtx) {
 			o.openNewDialogWindow()
 		}
@@ -113,4 +117,9 @@ func (o *openFileDialog) GetFileContent() *string {
 // or if the file source doesn't provide a name.
 func (o *openFileDialog) GetFileName() string {
 	return o.filename
+}
+
+func (o *openFileDialog) Reset() {
+	o.data = nil
+	o.filename = ""
 }
