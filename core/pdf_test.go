@@ -34,7 +34,7 @@ func TestPdf_AddPages_SingleRecord(t *testing.T) {
 
 	pdf := NewPdf()
 	records := []Record{
-		{Text: "Product A", Ean: "5901234123457", Times: 0},
+		{Text: "Product A", Ean: "5901234123457", Times: 1},
 	}
 
 	log := slog.New(slog.NewTextHandler(io.Discard, nil))
@@ -58,9 +58,9 @@ func TestPdf_AddPages_MultipleRecords(t *testing.T) {
 
 	pdf := NewPdf()
 	records := []Record{
-		{Text: "Product A", Ean: "5901234123457", Times: 0},
-		{Text: "Product B", Ean: "4006381333931", Times: 0},
-		{Text: "Product C", Ean: "96385074", Times: 0}, // EAN-8
+		{Text: "Product A", Ean: "5901234123457", Times: 1},
+		{Text: "Product B", Ean: "4006381333931", Times: 1},
+		{Text: "Product C", Ean: "96385074", Times: 1}, // EAN-8
 	}
 
 	log := slog.New(slog.NewTextHandler(io.Discard, nil))
@@ -83,7 +83,7 @@ func TestPdf_AddPages_TimesMultiplier(t *testing.T) {
 
 	pdf := NewPdf()
 	records := []Record{
-		{Text: "Product", Ean: "5901234123457", Times: 0},
+		{Text: "Product", Ean: "5901234123457", Times: 1},
 	}
 
 	log := slog.New(slog.NewTextHandler(io.Discard, nil))
@@ -116,9 +116,9 @@ func TestPdf_AddPages_RecordTimes(t *testing.T) {
 		t.Errorf("AddPages() failed: %v", err)
 	}
 
-	// Should have 4 pages (base 1 + record times 3)
-	if pdf.pdf.PageCount() != 4 {
-		t.Errorf("PageCount() = %d, want 4", pdf.pdf.PageCount())
+	// Should have 3 pages (base 1 * record times 3)
+	if pdf.pdf.PageCount() != 3 {
+		t.Errorf("PageCount() = %d, want 3", pdf.pdf.PageCount())
 	}
 }
 
@@ -132,7 +132,7 @@ func TestPdf_AddPages_CombinedTimes(t *testing.T) {
 	pdf := NewPdf()
 	records := []Record{
 		{Text: "Product A", Ean: "5901234123457", Times: 2},
-		{Text: "Product B", Ean: "4006381333931", Times: 0},
+		{Text: "Product B", Ean: "4006381333931", Times: 1},
 	}
 
 	log := slog.New(slog.NewTextHandler(io.Discard, nil))
@@ -141,8 +141,8 @@ func TestPdf_AddPages_CombinedTimes(t *testing.T) {
 		t.Errorf("AddPages() failed: %v", err)
 	}
 
-	// Product A: 2 (base) + 2 (record) = 4 pages
-	// Product B: 2 (base) + 0 (record) = 2 pages
+	// Product A: 2 (base) * 2 (record) = 4 pages
+	// Product B: 2 (base) * 1 (0→1) = 2 pages
 	// Total: 6 pages
 	if pdf.pdf.PageCount() != 6 {
 		t.Errorf("PageCount() = %d, want 6", pdf.pdf.PageCount())
@@ -273,7 +273,7 @@ func TestPdf_Save_OverwriteExisting(t *testing.T) {
 	// Create first PDF
 	pdf1 := NewPdf()
 	records1 := []Record{
-		{Text: "Product 1", Ean: "5901234123457", Times: 0},
+		{Text: "Product 1", Ean: "5901234123457", Times: 1},
 	}
 	log := slog.New(slog.NewTextHandler(io.Discard, nil))
 	_ = pdf1.AddPages(records1, 1, log)
@@ -287,8 +287,8 @@ func TestPdf_Save_OverwriteExisting(t *testing.T) {
 	// Create second PDF and overwrite
 	pdf2 := NewPdf()
 	records2 := []Record{
-		{Text: "Product 1", Ean: "5901234123457", Times: 0},
-		{Text: "Product 2", Ean: "4006381333931", Times: 0},
+		{Text: "Product 1", Ean: "5901234123457", Times: 1},
+		{Text: "Product 2", Ean: "4006381333931", Times: 1},
 	}
 	_ = pdf2.AddPages(records2, 1, log)
 	err = pdf2.Save(pdfPath)
@@ -316,9 +316,9 @@ func TestPdf_FullWorkflow(t *testing.T) {
 
 	// Add various records
 	records := []Record{
-		{Text: "Small Product", Ean: "96385074", Times: 0},                 // EAN-8
+		{Text: "Small Product", Ean: "96385074", Times: 1},                 // EAN-8
 		{Text: "Regular Product", Ean: "5901234123457", Times: 1},          // EAN-13 with extra
-		{Text: "Multi-line\nProduct Name", Ean: "4006381333931", Times: 0}, // Multi-line text
+		{Text: "Multi-line\nProduct Name", Ean: "4006381333931", Times: 1}, // Multi-line text
 	}
 
 	log := slog.New(slog.NewTextHandler(io.Discard, nil))
@@ -344,11 +344,11 @@ func TestPdf_FullWorkflow(t *testing.T) {
 	}
 
 	// Expected pages:
-	// Record 1: 2 (base) + 0 = 2
-	// Record 2: 2 (base) + 1 = 3
-	// Record 3: 2 (base) + 0 = 2
-	// Total: 7
-	expectedPages := 7
+	// Record 1: 2 (base) * 1 (0→1) = 2
+	// Record 2: 2 (base) * 1 = 2
+	// Record 3: 2 (base) * 1 (0→1) = 2
+	// Total: 6
+	expectedPages := 6
 	if pdf.pdf.PageCount() != expectedPages {
 		t.Errorf("PageCount() = %d, want %d", pdf.pdf.PageCount(), expectedPages)
 	}
@@ -365,11 +365,11 @@ func TestPdf_LargeNumberOfPages(t *testing.T) {
 
 	// Create many records
 	records := make([]Record, 50)
-	for i := 0; i < 50; i++ {
+	for i := range 50 {
 		records[i] = Record{
 			Text:  "Product",
 			Ean:   "5901234123457",
-			Times: 0,
+			Times: 1,
 		}
 	}
 
@@ -399,9 +399,9 @@ func TestPdf_SpecialCharactersInText(t *testing.T) {
 
 	pdf := NewPdf()
 	records := []Record{
-		{Text: "Příliš žluťoučký kůň", Ean: "5901234123457", Times: 0}, // Czech characters
-		{Text: "Product™ ®", Ean: "4006381333931", Times: 0},           // Symbols
-		{Text: "Café & Co.", Ean: "96385074", Times: 0},                // Ampersand
+		{Text: "Příliš žluťoučký kůň", Ean: "5901234123457", Times: 1}, // Czech characters
+		{Text: "Product™ ®", Ean: "4006381333931", Times: 1},           // Symbols
+		{Text: "Café & Co.", Ean: "96385074", Times: 1},                // Ampersand
 	}
 
 	log := slog.New(slog.NewTextHandler(io.Discard, nil))
