@@ -38,10 +38,23 @@ changelog:
     exclude:
       - "^docs:"
       - "^test:"
-
-#release:
-#  footer: >-
-#
-#    ---
-#
-#    Released by [GoReleaser](https://github.com/goreleaser/goreleaser).
+      - "^wip$"
+      - "^build:"
+  groups:
+    - title: Features
+      regexp: '^.*?feat(\([[:word:]]+\))??!?:.+$'
+      order: 0
+    - title: Bug Fixes
+      regexp: '^.*?fix(\([[:word:]]+\))??!?:.+$'
+      order: 1
+    - title: Performance Improvements
+      regexp: '^.*?perf(\([[:word:]]+\))??!?:.+$'
+      order: 2
+    - title: Refactoring
+      regexp: '^.*?refactor(\([[:word:]]+\))??!?:.+$'
+      order: 3
+    - title: Dependencies
+      regexp: '^.*?(build|deps)(\([[:word:]]+\))??!?:.+$'
+      order: 4
+    - title: Other Changes
+      order: 999
