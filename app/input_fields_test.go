@@ -33,8 +33,20 @@ func TestNewInputField(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var text string
-			field := NewInputField(tt.text, tt.fieldName, tt.suggestion, func(v string) { text = v })
+			storedValue := tt.text
+			msg := &Message{}
+			field := NewInputField(
+				tt.fieldName,
+				tt.suggestion,
+				msg,
+				func(value string) error {
+					storedValue = value
+					return nil
+				},
+				func() string {
+					return storedValue
+				},
+			)
 
 			if field.name != tt.fieldName {
 				t.Errorf("name = %v, want %v", field.name, tt.fieldName)
@@ -42,15 +54,28 @@ func TestNewInputField(t *testing.T) {
 			if field.suggestion != tt.suggestion {
 				t.Errorf("suggestion = %v, want %v", field.suggestion, tt.suggestion)
 			}
-			if tt.text != "" && text != tt.text {
-				t.Errorf("GetText() = %v, want %v", text, tt.text)
+			if tt.text != "" && field.editor.Text() != tt.text {
+				t.Errorf("editor.Text() = %v, want %v", field.editor.Text(), tt.text)
 			}
 		})
 	}
 }
 
 func TestInputField_SingleLine(t *testing.T) {
-	field := NewInputField("", "Test", "hint", func(v string) {})
+	msg := &Message{}
+	value := ""
+	field := NewInputField(
+		"Test",
+		"hint",
+		msg,
+		func(v string) error {
+			value = v
+			return nil
+		},
+		func() string {
+			return value
+		},
+	)
 
 	// Editor should be configured for single line
 	if !field.editor.SingleLine {
@@ -59,11 +84,23 @@ func TestInputField_SingleLine(t *testing.T) {
 }
 
 func TestInputField_EmptyInitialText(t *testing.T) {
-	var got string
-	NewInputField("", "Test", "hint", func(v string) { got = v })
+	msg := &Message{}
+	value := ""
+	field := NewInputField(
+		"Test",
+		"hint",
+		msg,
+		func(v string) error {
+			value = v
+			return nil
+		},
+		func() string {
+			return value
+		},
+	)
 
-	if got != "" {
-		t.Errorf("GetText() for empty initial = %v, want empty string", got)
+	if field.editor.Text() != "" {
+		t.Errorf("editor.Text() for empty initial = %v, want empty string", field.editor.Text())
 	}
 }
 
@@ -81,11 +118,23 @@ func TestInputField_SpecialCharacters(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var got string
-			field := NewInputField(tt.text, "Test", "hint", func(v string) { text = v })
-			got := field.GetText()
+			msg := &Message{}
+			value := tt.text
+			field := NewInputField(
+				"Test",
+				"hint",
+				msg,
+				func(v string) error {
+					value = v
+					return nil
+				},
+				func() string {
+					return value
+				},
+			)
+			got := field.editor.Text()
 			if got != tt.text {
-				t.Errorf("GetText() = %v, want %v", got, tt.text)
+				t.Errorf("editor.Text() = %v, want %v", got, tt.text)
 			}
 		})
 	}
@@ -94,12 +143,25 @@ func TestInputField_SpecialCharacters(t *testing.T) {
 func TestInputField_LongText(t *testing.T) {
 	// Test with long text
 	longText := ""
-	for i := 0; i < 1000; i++ {
+	for range 1000 {
 		longText += "x"
 	}
 
-	field := NewInputField(longText, "Test", "hint")
-	got := field.GetText()
+	msg := &Message{}
+	value := longText
+	field := NewInputField(
+		"Test",
+		"hint",
+		msg,
+		func(v string) error {
+			value = v
+			return nil
+		},
+		func() string {
+			return value
+		},
+	)
+	got := field.editor.Text()
 	if got != longText {
 		t.Errorf("Long text not preserved, got length %d, want %d", len(got), len(longText))
 	}
