@@ -56,6 +56,9 @@ func (p *Pdf) AddPages(records []Record, times uint, log *slog.Logger) error {
 			log.Error("Failed to generate barcode", "err", err)
 			return err
 		}
+		if record.Times == 0 {
+			log.Warn("Row EAN repetition is zero, skip", "record", record)
+		}
 		for i := 0; i < int(times)*record.Times; i++ {
 			log.Debug("Add page", "record", record, "barcode", barcode_path)
 			p.addPage(record, barcode_path)
