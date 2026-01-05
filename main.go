@@ -8,6 +8,7 @@ import (
 
 	"github.com/Fanteria/EANBaker/app"
 	"github.com/Fanteria/EANBaker/core"
+	"github.com/Fanteria/EANBaker/values"
 )
 
 func main() {
@@ -60,9 +61,9 @@ func GetOpts() (*core.Generator, error) {
 	flag.StringVar(&generator.EanHeader, "ean-header", "ean", "Case insensitive header of column containing ean codes that will be used to generate barcode.")
 	flag.StringVar(&generator.TimesHeader, "times-header", "", `Name of the column that specifies how many times each EAN code should be generated. If the column is empty, each EAN code is generated only once.
 If the column contains a number, the EAN code is generated that many times. Rows are processed line by line, so identical EANs appear consecutively.`)
-	timesEachEan := flag.Uint("times-each-ean", 1, "Number of times each EAN code will be printed in the output PDF.")
-	var comma_string string
-	flag.StringVar(&comma_string, "csv-separator", ",", "CSV file column separator.")
+	flag.UintVar(&generator.TimesEachEAN, "times-each-ean", 1, "Number of times each EAN code will be printed in the output PDF.")
+	comma_string := flag.String("csv-separator", ",", "CSV file column separator.")
+	print_version := flag.Bool("version", false, "Print version information and exit")
 
 	flag.Usage = func() {
 		fmt.Print(USAGE)
@@ -71,9 +72,15 @@ If the column contains a number, the EAN code is generated that many times. Rows
 
 	// Parse the flags
 	flag.Parse()
-	generator.TimesEachEAN = *timesEachEan
 
-	comma, err := core.CommaFromString(comma_string)
+	if *print_version {
+		fmt.Println("Version:", values.Version)
+		fmt.Println("Commit:", values.Commit)
+		fmt.Println("Build date:", values.Date)
+		os.Exit(0)
+	}
+
+	comma, err := core.CommaFromString(*comma_string)
 	if err != nil {
 		return nil, err
 	}

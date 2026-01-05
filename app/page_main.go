@@ -67,8 +67,7 @@ func (m *MainPage) mainPage(
 					if err != nil {
 						return err
 					}
-					message.message = fmt.Sprintf("File %s saved.", generator.PdfPath)
-					message.messageType = Info
+					message.setInfo(fmt.Sprintf("File %s saved.", generator.PdfPath))
 					log.Info("File generated", "generator", generator)
 					setHidden("./." + NAME + ".json")
 					m.file.Reset()

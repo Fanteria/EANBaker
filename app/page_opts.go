@@ -3,9 +3,7 @@ package app
 import (
 	"gioui.org/layout"
 	"gioui.org/unit"
-	"gioui.org/widget"
 	"gioui.org/widget/material"
-	"github.com/Fanteria/EANBaker/core"
 )
 
 type OptsPage struct {
@@ -14,7 +12,6 @@ type OptsPage struct {
 	eanHeader    *inputField
 	timesHeader  *inputField
 	pdfFile      *inputField
-	saveBtn      widget.Clickable
 	timesEachEan *inputField
 }
 
@@ -23,8 +20,6 @@ type OptsPage struct {
 // PDF path, and barcode repetition count. Returns the dimensions of the rendered layout.
 func (o *OptsPage) optsPage(
 	th *material.Theme,
-	generator *core.Generator,
-	message *Message,
 ) []layout.FlexChild {
 	return []layout.FlexChild{
 		layout.Rigid(func(gtx C) D {

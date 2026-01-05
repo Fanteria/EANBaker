@@ -25,6 +25,12 @@ const (
 	Error
 )
 
+const (
+	PageMain = iota
+	PageOptions
+	PageInfo
+)
+
 type Message struct {
 	message     string
 	messageType MessageType
@@ -36,6 +42,11 @@ func (m *Message) setError(err error) {
 		m.message = err.Error()
 		m.messageType = Error
 	}
+}
+
+func (m *Message) setInfo(s string) {
+	m.message = s
+	m.messageType = Info
 }
 
 const NAME string = "EANBaker"
@@ -80,7 +91,8 @@ func runUI(w *app.Window, log *core.MultiLogger) error {
 
 	messageBtn := widget.Clickable{}
 	optionsBtn := widget.Clickable{}
-	openOptions := false
+	infoBtn := widget.Clickable{}
+	actPage := PageMain
 
 	var ops op.Ops
 	th := material.NewTheme()
@@ -156,6 +168,8 @@ func runUI(w *app.Window, log *core.MultiLogger) error {
 		timesEachEan: &timesEachEan,
 	}
 
+	infoPage := InfoPage {}
+
 	for {
 		switch e := w.Event().(type) {
 		case app.DestroyEvent:
@@ -172,10 +186,13 @@ func runUI(w *app.Window, log *core.MultiLogger) error {
 					}),
 					layout.Expanded(func(gtx C) D {
 						var childs []layout.FlexChild
-						if openOptions {
-							childs = optsPage.optsPage(th, generator, &message)
-						} else {
+						switch actPage {
+						case PageMain:
 							childs = mainPage.mainPage(th, generator, &message, log.Logger)
+						case PageOptions:
+							childs = optsPage.optsPage(th)
+						case PageInfo:
+							childs = infoPage.infoPage(th, &message, log)
 						}
 						return layout.Center.Layout(gtx, func(gtx C) D {
 							return layout.UniformInset(unit.Dp(20)).Layout(gtx, func(gtx C) D {
@@ -207,18 +224,54 @@ func runUI(w *app.Window, log *core.MultiLogger) error {
 					}),
 					layout.Expanded(func(gtx C) D {
 						if optionsBtn.Clicked(gtx) {
-							openOptions = !openOptions
+							if actPage == PageOptions {
+								actPage = PageMain
+							} else {
+								actPage = PageOptions
+							}
+						}
+						if infoBtn.Clicked(gtx) {
+							if actPage == PageInfo {
+								actPage = PageMain
+							} else {
+								actPage = PageInfo
+							}
 						}
 						return layout.NE.Layout(gtx, func(gtx C) D {
 							return layout.Inset{Top: unit.Dp(20), Right: unit.Dp(20)}.Layout(gtx, func(gtx C) D {
-								var buttonIcon string
-								if openOptions {
-									buttonIcon = "×"
-								} else {
-									buttonIcon = "☰"
-								}
-								button := material.Button(th, &optionsBtn, buttonIcon)
-								return button.Layout(gtx)
+								return layout.Flex{
+									Axis:    layout.Horizontal,
+									Spacing: layout.SpaceBetween,
+								}.Layout(gtx,
+									layout.Rigid(func(gtx C) D {
+										var buttonIcon string
+										if actPage == PageInfo {
+											buttonIcon = "×"
+										} else {
+											buttonIcon = "ℹ"
+										}
+										button := material.Button(th, &infoBtn, buttonIcon)
+										width := gtx.Dp(unit.Dp(40))
+										gtx.Constraints.Min.X = width
+										gtx.Constraints.Max.X = width
+										return button.Layout(gtx)
+									}),
+									layout.Rigid(func(gtx C) D {
+										return layout.Inset{Left: unit.Dp(10)}.Layout(gtx, func(gtx C) D {
+											var buttonIcon string
+											if actPage == PageOptions {
+												buttonIcon = "×"
+											} else {
+												buttonIcon = "☰"
+											}
+											button := material.Button(th, &optionsBtn, buttonIcon)
+											width := gtx.Dp(unit.Dp(40))
+											gtx.Constraints.Min.X = width
+											gtx.Constraints.Max.X = width
+											return button.Layout(gtx)
+										})
+									}),
+								)
 							})
 						})
 					}),

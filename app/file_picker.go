@@ -76,11 +76,9 @@ func (o *openFileDialog) checkResult(msg *Message) {
 	select {
 	case res := <-o.result:
 		if res.err != nil {
-			msg.message = res.err.Error()
-			msg.messageType = Error
+			msg.setError(res.err)
 		} else {
-			msg.message = "File loaded"
-			msg.messageType = Info
+			msg.setInfo("File loaded")
 		}
 		o.data = &res.data
 		o.filename = res.filename
